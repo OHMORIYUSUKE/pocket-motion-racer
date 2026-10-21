@@ -1,8 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import DriveGame from '@/components/drive-game';
+import GameSession from '@/components/game-session';
 import '@/app/globals.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode><DriveGame /></React.StrictMode>,
+  <React.StrictMode>
+    <GameSession />
+  </React.StrictMode>,
 );

@@ -1,5 +1,5 @@
-import DriveGame from '@/components/drive-game';
+import GameSession from '@/components/game-session';
 
 export default function Home() {
-  return <DriveGame />;
+  return <GameSession />;
 }
