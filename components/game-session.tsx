@@ -185,7 +185,6 @@ export default function GameSession() {
               setRacePhase('finished');
               setElapsed(finalTime);
               setLap(3);
-              s.speed = 0;
             } else {
               setLap(completed + 1);
             }

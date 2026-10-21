@@ -89,7 +89,7 @@ export function useDriveAudio(enabled: boolean, controller: boolean) {
       }
       const now = audio.engine.context.currentTime,
         engineLevel = throttle > 0 ? 0.055 + throttle * 0.045 : 0.0001,
-        brakeLevel = braking > 0 && currentSpeed > 1 ? 0.085 : 0.0001;
+        brakeLevel = braking > 0 && currentSpeed > 1 ? braking * 0.085 : 0.0001;
       audio.engine.frequency.setTargetAtTime(
         70 + throttle * 42 + currentSpeed * 4.2,
         now,
