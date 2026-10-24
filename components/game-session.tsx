@@ -8,10 +8,16 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { ControllerScreen } from '@/components/controller-screen';
+import { DeviceGate } from '@/components/device-gate';
 import { Pairing } from '@/components/pairing';
 import { RaceScreen, type RacePhase } from '@/components/race-screen';
 import { useDriveAudio } from '@/hooks/use-drive-audio';
 import { usePeerConnection } from '@/hooks/use-peer-connection';
+import {
+  getDeviceKind,
+  getServerDeviceKind,
+  subscribeToStaticDevice,
+} from '@/lib/device';
 import {
   type CarState,
   type Controls,
@@ -36,6 +42,25 @@ const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
 
 /** PCのゲーム画面とスマホコントローラー画面を統括する。 */
 export default function GameSession() {
+  const controller = useSyncExternalStore(
+      subscribeToStaticLocation,
+      isControllerPage,
+      () => false,
+    ),
+    device = useSyncExternalStore(
+      subscribeToStaticDevice,
+      getDeviceKind,
+      getServerDeviceKind,
+    );
+
+  if (device === 'unknown') return null;
+  if (controller && device !== 'phone') return <DeviceGate target="phone" />;
+  if (!controller && device !== 'desktop') return <DeviceGate target="pc" />;
+  return <GameRuntime controller={controller} />;
+}
+
+/** 判定済みの端末でレースと接続の状態を管理する。 */
+function GameRuntime({ controller }: { controller: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null),
     worldRef = useRef<ThreeWorld | null>(null),
     controls = useRef<Controls>({
@@ -68,11 +93,6 @@ export default function GameSession() {
     [countdown, setCountdown] = useState(''),
     [elapsed, setElapsed] = useState(0),
     [lapTimes, setLapTimes] = useState<number[]>([]);
-  const controller = useSyncExternalStore(
-    subscribeToStaticLocation,
-    isControllerPage,
-    () => false,
-  );
   const { playHorn, updateDriveAudio } = useDriveAudio(sound, controller);
 
   // PC画面だけにThree.jsワールドを作成し、終了時に破棄する。

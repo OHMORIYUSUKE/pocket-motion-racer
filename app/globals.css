@@ -23,6 +23,56 @@ body {
 button {
   font: inherit;
 }
+.device-gate {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 12%, #fffbed 0 24%, transparent 58%),
+    linear-gradient(145deg, #f3e6c5, #e7d19f);
+}
+.device-gate-card {
+  width: min(100%, 480px);
+  padding: 42px 34px;
+  border: 3px solid var(--ink);
+  border-radius: 28px;
+  background: var(--cream);
+  text-align: center;
+  box-shadow: 9px 9px 0 var(--ink);
+}
+.device-gate-icon {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  margin: 24px auto 20px;
+  border: 3px solid var(--ink);
+  border-radius: 30px;
+  background: var(--orange);
+  color: #fff;
+  box-shadow: 5px 5px 0 var(--ink);
+}
+.device-gate-icon svg {
+  width: 54px;
+  height: 54px;
+  stroke-width: 2.4;
+}
+.device-gate-card h1 {
+  margin: 0;
+  font-size: clamp(28px, 7vw, 42px);
+  line-height: 1.15;
+}
+.device-gate-card p {
+  margin: 18px auto 0;
+  max-width: 370px;
+  color: #5d6963;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.75;
+}
 .game-shell {
   position: fixed;
   inset: 0;
