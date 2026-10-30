@@ -560,6 +560,41 @@ button {
   font-weight: 700;
   line-height: 1.6;
 }
+.wifi-step {
+  display: grid;
+  place-items: center;
+  gap: 14px;
+  margin: 18px 0;
+  padding: 26px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  background: #fff;
+}
+.wifi-step > svg {
+  width: 46px;
+  height: 46px;
+  color: var(--orange);
+  stroke-width: 2.6;
+}
+.wifi-step div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.wifi-step b {
+  min-width: 70px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--green);
+  color: #fff;
+  font-size: 13px;
+  text-align: center;
+}
+.wifi-step span {
+  color: #66736c;
+  font-size: 11px;
+  font-weight: 900;
+}
 .pair-wizard-actions {
   display: grid;
   grid-template-columns: 0.75fr 1.25fr;

@@ -1,7 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Camera, Check, Copy, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Check,
+  Copy,
+  Wifi,
+  X,
+} from 'lucide-react';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 
@@ -56,7 +64,7 @@ export function Pairing({
         <span className="eyebrow">QR PAIRING</span>
         <h2>{host ? 'スマホをつなぐ' : 'PCにつなぐ'}</h2>
         <p className="pair-lead">
-          同じWi-Fiにつないで、画面の案内どおりにQRコードを読み取ってください。
+          画面の案内に沿って、順番に接続してください。
         </p>
         {error && (
           <div className="pair-error" role="alert">
@@ -75,21 +83,22 @@ export function Pairing({
           <>
             <ol>
               <li>
-                <b>1</b> PC画面で「② 接続QRを表示」を押してください
+                <b>1</b> PC画面で「接続QRを表示」を押してください
               </li>
               <li>
-                <b>2</b> 下の「② 接続QRを読み取る」を押して、PCのQRを読み取ってください
+                <b>2</b>{' '}
+                下の「接続QRを読み取る」を押して、PCのQRを読み取ってください
               </li>
               <li>
-                <b>3</b> 表示された「③ 返答QR」をPCのカメラに見せてください
+                <b>3</b> 表示された「返答QR」をPCのカメラに見せてください
               </li>
             </ol>
             {!code ? (
-              <QrScanner label="② 接続QRを読み取る" onScan={acceptOffer} />
+              <QrScanner label="接続QRを読み取る" onScan={acceptOffer} />
             ) : (
               <QrDisplay
                 value={code}
-                label="③ 返答QRをPCのカメラに見せてください"
+                label="返答QRをPCのカメラに見せてください"
               />
             )}
           </>
@@ -111,7 +120,7 @@ export function Pairing({
           {code && <CodeBox code={code} />}
         </details>
         <p className="pair-note">
-          ①はスマホの標準カメラで、②と③は画面内のカメラで読み取ってください。
+          URLのQRは標準カメラで、接続QRと返答QRは画面内のカメラで読み取ってください。
         </p>
       </dialog>
     </div>
@@ -130,8 +139,12 @@ function HostPairingWizard({
   createOffer: () => void;
   acceptAnswer: (code?: string) => void;
 }) {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const steps = [
+    {
+      title: '同じWi-Fiに接続する',
+      text: 'PCとスマホを同じWi-Fiに接続してください。',
+    },
     {
       title: 'スマホでページを開く',
       text: 'QRコードをスマホの標準カメラで読み取ってください。',
@@ -147,17 +160,17 @@ function HostPairingWizard({
   ] as const;
   const current = steps[step - 1];
 
-  /** 接続情報を新しく作成し、2番目の手順へ進む。 */
+  /** 接続情報を新しく作成し、3番目の手順へ進む。 */
   const prepareOffer = () => {
-    setStep(2);
+    setStep(3);
     createOffer();
   };
 
   return (
-    <section className="pair-wizard" aria-label={`接続手順 ${step}/3`}>
+    <section className="pair-wizard" aria-label={`接続手順 ${step}/4`}>
       <div className="pair-stepper" aria-hidden="true">
         {steps.map((_, index) => {
-          const number = (index + 1) as 1 | 2 | 3,
+          const number = (index + 1) as 1 | 2 | 3 | 4,
             complete = number < step,
             active = number === step;
           return (
@@ -172,12 +185,27 @@ function HostPairingWizard({
         })}
       </div>
       <div className="pair-step-heading">
-        <small>STEP {step} / 3</small>
+        <small>STEP {step} / 4</small>
         <h3>{current.title}</h3>
         <p>{current.text}</p>
       </div>
 
       {step === 1 && (
+        <>
+          <div className="wifi-step">
+            <Wifi />
+            <div>
+              <b>PC</b>
+              <span>同じWi-Fi</span>
+              <b>スマホ</b>
+            </div>
+          </div>
+          <Button className="wide pair-next" onClick={() => setStep(2)}>
+            同じWi-Fiに接続しました <ArrowRight />
+          </Button>
+        </>
+      )}
+      {step === 2 && (
         <>
           <QrDisplay
             value={controllerUrl}
@@ -189,7 +217,7 @@ function HostPairingWizard({
           </Button>
         </>
       )}
-      {step === 2 && (
+      {step === 3 && (
         <>
           {code ? (
             <QrDisplay
@@ -200,26 +228,26 @@ function HostPairingWizard({
             <div className="pair-working">接続QRを準備しています…</div>
           )}
           <div className="pair-wizard-actions">
-            <Button variant="outline" onClick={() => setStep(1)}>
+            <Button variant="outline" onClick={() => setStep(2)}>
               <ArrowLeft /> 戻る
             </Button>
             <Button
               className="pair-next"
               disabled={!code}
-              onClick={() => setStep(3)}
+              onClick={() => setStep(4)}
             >
               読み取りました <ArrowRight />
             </Button>
           </div>
         </>
       )}
-      {step === 3 && (
+      {step === 4 && (
         <>
           <QrScanner label="スマホの返答QRを読み取る" onScan={acceptAnswer} />
           <Button
             className="pair-back"
             variant="outline"
-            onClick={() => setStep(2)}
+            onClick={() => setStep(3)}
           >
             <ArrowLeft /> 前の手順に戻る
           </Button>
