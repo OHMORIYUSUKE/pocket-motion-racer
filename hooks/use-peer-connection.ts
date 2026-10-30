@@ -83,6 +83,7 @@ export function usePeerConnection({
   const createOffer = useCallback(async () => {
     try {
       setConnectionError('');
+      setCode('');
       pcRef.current?.close();
       const pc = new RTCPeerConnection({ iceServers: [] });
       pcRef.current = pc;

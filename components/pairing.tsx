@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Camera, Copy, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Camera, Check, Copy, X } from 'lucide-react';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 
@@ -56,7 +56,7 @@ export function Pairing({
         <span className="eyebrow">QR PAIRING</span>
         <h2>{host ? 'スマホをつなぐ' : 'PCにつなぐ'}</h2>
         <p className="pair-lead">
-          同じWi-Fiにつないで、画面の案内どおりにQRを読み取ります。
+          同じWi-Fiにつないで、画面の案内どおりにQRコードを読み取ってください。
         </p>
         {error && (
           <div className="pair-error" role="alert">
@@ -65,56 +65,32 @@ export function Pairing({
           </div>
         )}
         {host ? (
-          <>
-            <ol>
-              <li>
-                <b>1</b> URLのQRを標準カメラで読み、ページを開く
-              </li>
-              <li>
-                <b>2</b> スマホ画面の「カメラを開く」を押し、PCの「②
-                接続QR」を読む
-              </li>
-              <li>
-                <b>3</b> スマホの返答QRをPCで読む
-              </li>
-            </ol>
-            <QrDisplay
-              value={controllerUrl}
-              label="① スマホ用ページを開くURL"
-              url
-            />
-            {!code || code.startsWith('コード') ? (
-              <Button className="wide" onClick={createOffer}>
-                ② 接続QRを表示
-              </Button>
-            ) : (
-              <QrDisplay
-                value={code}
-                label="② スマホ画面内のカメラで読み取る"
-              />
-            )}
-            <QrScanner
-              label="③ スマホの返答QRを読み取る"
-              onScan={acceptAnswer}
-            />
-          </>
+          <HostPairingWizard
+            controllerUrl={controllerUrl}
+            code={code}
+            createOffer={createOffer}
+            acceptAnswer={acceptAnswer}
+          />
         ) : (
           <>
             <ol>
               <li>
-                <b>1</b> PC画面で「② 接続QRを表示」を押す
+                <b>1</b> PC画面で「② 接続QRを表示」を押してください
               </li>
               <li>
-                <b>2</b> 下の「② 接続QRを読み取る」を押し、PCのQRを読む
+                <b>2</b> 下の「② 接続QRを読み取る」を押して、PCのQRを読み取ってください
               </li>
               <li>
-                <b>3</b> 表示された「③ 返答QR」をPCのカメラに見せる
+                <b>3</b> 表示された「③ 返答QR」をPCのカメラに見せてください
               </li>
             </ol>
             {!code ? (
               <QrScanner label="② 接続QRを読み取る" onScan={acceptOffer} />
             ) : (
-              <QrDisplay value={code} label="③ 返答QRをPCのカメラに見せる" />
+              <QrDisplay
+                value={code}
+                label="③ 返答QRをPCのカメラに見せてください"
+              />
             )}
           </>
         )}
@@ -135,12 +111,124 @@ export function Pairing({
           {code && <CodeBox code={code} />}
         </details>
         <p className="pair-note">
-          ①だけがURLです。②と返答QRは画面内のカメラで読み取ります。
+          ①はスマホの標準カメラで、②と③は画面内のカメラで読み取ってください。
         </p>
       </dialog>
     </div>
   );
 }
+
+/** PC側の接続手順を1画面1操作のウィザードとして表示する。 */
+function HostPairingWizard({
+  controllerUrl,
+  code,
+  createOffer,
+  acceptAnswer,
+}: {
+  controllerUrl: string;
+  code: string;
+  createOffer: () => void;
+  acceptAnswer: (code?: string) => void;
+}) {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const steps = [
+    {
+      title: 'スマホでページを開く',
+      text: 'QRコードをスマホの標準カメラで読み取ってください。',
+    },
+    {
+      title: '接続QRを読み取る',
+      text: 'スマホ画面の「カメラを開く」を押して、このQRコードを読み取ってください。',
+    },
+    {
+      title: '返答QRを読み取る',
+      text: 'PCのカメラで、スマホに表示された返答QRを読み取ってください。',
+    },
+  ] as const;
+  const current = steps[step - 1];
+
+  /** 接続情報を新しく作成し、2番目の手順へ進む。 */
+  const prepareOffer = () => {
+    setStep(2);
+    createOffer();
+  };
+
+  return (
+    <section className="pair-wizard" aria-label={`接続手順 ${step}/3`}>
+      <div className="pair-stepper" aria-hidden="true">
+        {steps.map((_, index) => {
+          const number = (index + 1) as 1 | 2 | 3,
+            complete = number < step,
+            active = number === step;
+          return (
+            <div
+              key={number}
+              className={`${complete ? 'complete' : ''} ${active ? 'active' : ''}`}
+            >
+              <i>{complete ? <Check /> : number}</i>
+              {index < steps.length - 1 && <span />}
+            </div>
+          );
+        })}
+      </div>
+      <div className="pair-step-heading">
+        <small>STEP {step} / 3</small>
+        <h3>{current.title}</h3>
+        <p>{current.text}</p>
+      </div>
+
+      {step === 1 && (
+        <>
+          <QrDisplay
+            value={controllerUrl}
+            label="スマホで読み取ってください"
+            url
+          />
+          <Button className="wide pair-next" onClick={prepareOffer}>
+            スマホで開きました <ArrowRight />
+          </Button>
+        </>
+      )}
+      {step === 2 && (
+        <>
+          {code ? (
+            <QrDisplay
+              value={code}
+              label="スマホ画面のカメラで読み取ってください"
+            />
+          ) : (
+            <div className="pair-working">接続QRを準備しています…</div>
+          )}
+          <div className="pair-wizard-actions">
+            <Button variant="outline" onClick={() => setStep(1)}>
+              <ArrowLeft /> 戻る
+            </Button>
+            <Button
+              className="pair-next"
+              disabled={!code}
+              onClick={() => setStep(3)}
+            >
+              読み取りました <ArrowRight />
+            </Button>
+          </div>
+        </>
+      )}
+      {step === 3 && (
+        <>
+          <QrScanner label="スマホの返答QRを読み取る" onScan={acceptAnswer} />
+          <Button
+            className="pair-back"
+            variant="outline"
+            onClick={() => setStep(2)}
+          >
+            <ArrowLeft /> 前の手順に戻る
+          </Button>
+        </>
+      )}
+    </section>
+  );
+}
+
 /** カメラが使えない場合の接続コードとコピーボタンを表示する。 */
 function CodeBox({ code }: { code: string }) {
   return (
